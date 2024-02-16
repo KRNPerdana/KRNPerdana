@@ -1,0 +1,95 @@
+import schedule
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def choose_server_and_login(url, username, password, server_option, target_page_url, file_download_url, destination):
+    # Initialize the WebDriver (in this example, using Chrome)
+    driver = webdriver.Chrome()
+
+    try:
+        # Open the webpage
+        driver.get(url)
+
+        # Choose the server by clicking the appropriate option
+        server_option_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, server_option))
+        )
+        server_option_element.click()
+
+        # Find and fill in the username and password fields
+        username_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, 'login'))
+        )
+        username_field.send_keys(username)
+
+        password_field = driver.find_element(By.NAME, 'password')
+        password_field.send_keys(password)
+
+        # Find and click the login button
+        login_button = driver.find_element(By.XPATH, '/html/body/div/div/div/form/div[4]/button')
+        login_button.click()
+        
+        # Wait for the login to complete
+        #WebDriverWait(driver, 10).until(EC.url_contains(target_page_url))
+        
+        # Navigate to another page (replace the XPath with the actual navigation)
+        another_page_button = WebDriverWait(driver, 10).until(
+          EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div[3]/div[1]/a[10]'))
+        )
+        another_page_button.click()
+        
+        #
+        dropdown_button = WebDriverWait(driver, 10).until(
+         EC.element_to_be_clickable((By.XPATH, '/html/body/header/nav/ul[1]/li[4]/a'))
+        )
+        dropdown_button.click()
+
+        # Wait for the dropdown options to be visible
+        dropdown_options = WebDriverWait(driver, 10).until(
+         EC.visibility_of_all_elements_located((By.XPATH, '/html/body/header/nav/ul[1]/li[4]/div/a[5]/span'))
+        )
+
+        # Iterate through options and click the desired one
+        for option in dropdown_options:
+          if option.text == 'Current Stock':
+            option.click()
+            break
+        #
+
+     
+        # Explicit wait for the new page to load
+        WebDriverWait(driver, 10).until(
+            lambda driver: driver.execute_script('return document.readyState') == 'complete'
+        )
+
+        # Navigate to another page (replace the XPath with the actual navigation)
+        secondary_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '/html/body/div[3]/div[2]/div/div/button[7]'))
+        )
+
+        # Click the element
+        secondary_button.click()
+
+        # For simplicity, wait for a few seconds (you can improve this part)
+        time.sleep(500)
+
+        print(f"File downloaded successfully to {destination}")
+
+    finally:
+        # Close the browser to release resources
+        driver.quit()
+
+# Schedule the function to occur every day at a specific time
+schedule.every().day.at("09:33").do(choose_server_and_login, url='',
+                                    username='', password='',
+                                    server_option='', target_page_url='',
+                                    file_download_url='',
+                                    destination='downloaded_file.xlsx')
+
+# Run the scheduled tasks
+while True:
+    schedule.run_pending()
+    time.sleep(1)
